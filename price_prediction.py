@@ -81,7 +81,11 @@ len(new_data_set3.location.unique())
 
 ## Try to find the outlier from data 
 
-new_data_set3[new_data_set3.total_sqft/new_data_set3.Bhk<300].head()
+data_set_4 = new_data_set3[~(new_data_set3.total_sqft/new_data_set3.Bhk<300)]
+data_set_4.shape                           
+                           
+data_set_4.price_per_sqft.describe() 
+
 
 
 
