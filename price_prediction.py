@@ -54,11 +54,36 @@ def convert_sqft_to_num(x):
     
 new_data_set2 = new_data_set1.copy()
 new_data_set2['total_sqft'] = new_data_set2['total_sqft'].apply(convert_sqft_to_num)
-new_data_set.head(10)  
+new_data_set2.head(10)  
 
 
-#........ Data Cleaning parts end here ................
     
+## Creating a new data_Set using the old one & creating a new column using price & sqft 
+
+new_data_set3 = new_data_set2.copy()
+new_data_set3['price_per_sqft'] = new_data_set3['price']*100000/new_data_set3['total_sqft']
+new_data_set3.head()
+
+## Check the location data
+
+new_data_set3.location.unique()
+new_data_set3.location = new_data_set3.location.apply(lambda x: x.strip())
+location_finder = new_data_set3.groupby('location')['location'].agg('count').sort_values(ascending=False)
+location_finder
+
+len(location_finder[location_finder<=10])
+
+location_finder_less_than_10 = location_finder[location_finder<=10]
+location_finder_less_than_10
+
+new_data_set3.location = new_data_set3.location.apply(lambda x: 'other' if x in location_finder_less_than_10 else x)
+len(new_data_set3.location.unique())
+
+## Try to find the outlier from data 
+
+new_data_set3[new_data_set3.total_sqft/new_data_set3.Bhk<300].head()
+
+
 
 
 
