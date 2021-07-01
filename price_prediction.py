@@ -82,14 +82,73 @@ len(new_data_set3.location.unique())
 ## Try to find the outlier from data 
 
 data_set_4 = new_data_set3[~(new_data_set3.total_sqft/new_data_set3.Bhk<300)]
-data_set_4.shape                           
-                           
+data_set_4.shape                                                      
 data_set_4.price_per_sqft.describe() 
 
+def remove_outliers(df):
+    df_out = pd.DataFrame()
+    for key, subdf in df.groupby('location'):
+        m = np.mean(subdf.price_per_sqft)
+        st = np.std(subdf.price_per_sqft)
+        reduced_df = subdf[(subdf.price_per_sqft>(m-st)) & (subdf.price_per_sqft<(m+st))]
+        df_out = pd.concat([df_out,reduced_df], ignore_index=True)
+    return df_out    
 
 
 
+data_set_5 = remove_outliers(data_set_4)
+data_set_5.shape 
 
+def plot_scatter_chart(df,location):
+    bhk2 = df[(df.location==location) & (df.Bhk==2)]
+    bhk3 = df[(df.location==location) & (df.Bhk==3)]
+    matplotlib.rcParams['figure.figsize'] = (15,10)
+    plt.scatter(bhk2.total_sqft, bhk2.price, color='blue', label='2 BHK', s=50)
+    plt.scatter(bhk3.total_sqft, bhk3.price,marker ='+', color='green', label='3 BHK', s=50)
+    plt.xlabel("Total Suare Feet Area")
+    plt.ylabel("Price")
+    plt.title(location)
+    plt.legend()
+    
+plot_scatter_chart(data_set_5, "Rajiji Nagar")    
+    
+ 
+def remove_bhk_outliers(df):
+    exclude_indices = np.array([])
+    for location, location_df in df.groupby('location'):
+        bhk_stats = {}
+        for bhk, bhk_df in location_df.groupby('Bhk'):
+            bhk_stats[bhk] = {
+                'mean': np.mean(bhk_df.price_per_sqft),
+                'std': np.std(bhk_df.price_per_sqft),
+                'count': bhk_df.shape[0]
+            }
+        for bhk, bhk_df in location_df.groupby('Bhk'):
+            stats = bhk_stats.get(bhk-1)
+            if stats and stats['count']>5:
+                exclude_indices = np.append(exclude_indices, 
+                                            bhk_df[bhk_df.price_per_sqft<(stats['mean'])].index.values)
+    return df.drop(exclude_indices, axis='index')    
+
+data_set_6 = remove_bhk_outliers(data_set_5) 
+data_set_6.shape      
+
+import matplotlib
+matplotlib.rcParams['figure.figsize'] = (20,10)
+plt.hist(data_set_6.price_per_sqft,rwidth=0.8)
+plt.xlabel('Price per square feet')
+plt.ylabel('count')
+
+#data_set_6[data_set_6.bath>10]
+
+plt.hist(data_set_6.bath,rwidth=0.8)
+plt.xlabel("Number of bathrooms")
+plt.ylabel("Count")
+
+data_set_6[data_set_6.bath>data_set_6.Bhk+2]
+
+data_set_7 = data_set_6[data_set_6.bath<data_set_6.Bhk+2]
+data_set_7.shape
 
 
 
